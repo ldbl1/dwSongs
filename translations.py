@@ -209,6 +209,32 @@ LANGS = {
         "download_stats": "Bem-sucedidos: {ok}\nErros: {err}\nInválidos: {inv}",
         "download_open_folder_question": "Abrir pasta de download?",
     },
+    "ar_MA": {
+        "app_title": "dwSongs: محمل يوتيوب",
+        "folder_frame": "مجلد التنزيل",
+        "select_folder": "اختر المجلد...",
+        "no_folder": "لم يتم اختيار مجلد",
+        "source_frame": "مصدر الروابط",
+        "csv": "CSV",
+        "paste_text": "الصق النص",
+        "select_csv": "اختر ملف CSV...",
+        "no_csv": "لم يتم اختيار ملف",
+        "paste_links_label": "ألصق الروابط هنا (واحد في كل سطر):",
+        "format_frame": "تنسيق الإخراج",
+        "mp3": "MP3 (صوتي)",
+        "mp4": "MP4 (فيديو)",
+        "download": "تنزيل",
+        "reset": "إعادة ضبط",
+        "author_link": "تعرف على المؤلف",
+        "uses_notice": "استخدم هذا البرنامج مع احترام شروط YouTube وحقوق النشر.",
+        "error_select_folder": "يرجى اختيار مجلد تنزيل صالح.",
+        "error_select_csv": "يرجى اختيار ملف CSV صالح.",
+        "error_no_urls": "لم يتم العثور على روابط للتنزيل.",
+        "csv_read_error": "تعذر قراءة CSV: {error}",
+        "download_finished": "اكتمل التنزيل.",
+        "download_stats": "ناجحة: {ok}\nأخطاء: {err}\nغير صالحة: {inv}",
+        "download_open_folder_question": "هل تريد فتح مجلد التنزيل؟",
+    },
 }
 
 _current = "es"
@@ -234,7 +260,9 @@ LANG_NAMES = {
     "de": "Deutsch",
     "zh": "中文 (简体)",
     "pt": "Português",
+    "ar_MA": "العربية (المغرب)"
 }
+
 
 
 def get_language_choices():
