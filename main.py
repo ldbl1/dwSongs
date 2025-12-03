@@ -7,6 +7,7 @@ import sys
 import subprocess
 import webbrowser
 import threading
+import customtkinter as ctk
 
 from translations import set_language, t, get_language_choices, code_from_choice, get_current_choice
 
@@ -131,10 +132,50 @@ def main():
     title_label = tk.Label(root, text=t("app_title"), font=("Arial", 16, "bold"))
     title_label.pack(pady=10)
 
-    # Selector de idioma (OptionMenu)
+    # Selector de idioma (Combobox moderno)
     lang_var = tk.StringVar(value=get_current_choice())
-    option_lang = tk.OptionMenu(root, lang_var, *get_language_choices())
-    option_lang.config(width=20)
+    
+    # Estilo personalizado para el combobox
+    style = ttk.Style()
+    style.theme_use('clam')
+    
+    # Configurar colores y apariencia del combobox
+    style.configure('Modern.TCombobox',
+                    fieldbackground='white',
+                    background='#808080',  # Botón gris
+                    foreground='black',
+                    arrowcolor='white',  # Flecha blanca sobre fondo gris
+                    bordercolor='#CCCCCC',
+                    lightcolor='#E0E0E0',
+                    darkcolor='#606060',
+                    borderwidth=1,
+                    arrowsize=14,  # Tamaño de la flecha
+                    relief='flat')
+    
+    style.map('Modern.TCombobox',
+              fieldbackground=[('readonly', 'white')],
+              selectbackground=[('readonly', 'white')],
+              selectforeground=[('readonly', 'black')],
+              background=[('readonly', '#808080'), ('hover', '#909090')],  # Gris con hover
+              arrowcolor=[('readonly', 'white'), ('hover', 'white')])
+    
+    # Configurar estilo para la barra de progreso en verde
+    style.configure('Green.Horizontal.TProgressbar',
+                    troughcolor='#E0E0E0',  # Fondo de la barra
+                    background='#4CAF50',   # Color verde de la barra
+                    bordercolor='#CCCCCC',
+                    lightcolor='#66BB6A',
+                    darkcolor='#388E3C',
+                    thickness=20)
+    
+    # Crear el combobox con estilo moderno
+    option_lang = ttk.Combobox(root, 
+                               textvariable=lang_var,
+                               values=get_language_choices(),
+                               state='readonly',
+                               style='Modern.TCombobox',
+                               width=22,
+                               font=('Arial', 10))
     option_lang.pack(pady=4)
 
     fuente_var = tk.StringVar(value="CSV")
@@ -211,10 +252,15 @@ def main():
     rb_mp4 = tk.Radiobutton(frame_formato, text=t("mp4"), variable=formato_var, value="MP4")
     rb_mp4.pack(side="left", padx=8, pady=5)
 
-    # Barra de progreso
-    progress_var = tk.IntVar()
-    progress_bar = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate", variable=progress_var)
-    progress_bar.pack(pady=10)
+    # Barra de progreso (inicia vacía en modo determinado)
+    progress_var = tk.IntVar(value=0)
+    progress_bar = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate", 
+                                    variable=progress_var, style='Green.Horizontal.TProgressbar')
+    progress_bar.pack(pady=5)
+    
+    # Label para mostrar el progreso numérico
+    progress_label = tk.Label(root, text="", font=("Arial", 10), fg="#555555")
+    progress_label.pack(pady=2)
 
     # Enlace autor
     link1 = tk.Label(root, text=t("author_link"), fg="blue", cursor="hand2")
@@ -235,9 +281,13 @@ def main():
         invalid_count = 0
 
         ydl_opts = construir_opciones_ydl(formato, carpeta)
-
-        progress_bar["maximum"] = len(urls)
-        progress_var.set(0)
+        
+        total_urls = len(urls)
+        # Mostrar progreso inicial 0/total - 0%
+        progress_label.config(text=f"0 procesados de {total_urls} - 0%")
+        # Cambiar a modo indeterminado y comenzar animación
+        progress_bar["mode"] = "indeterminate"
+        progress_bar.start(10)
 
         with YoutubeDL(ydl_opts) as ydl:
             for i, raw in enumerate(urls, start=1):
@@ -251,13 +301,21 @@ def main():
                     except Exception as e:
                         print(f"Error al descargar {url}: {e}")
                         error_count += 1
-                progress_var.set(i)
+                
+                # Actualizar label de progreso
+                completed = ok_count + error_count + invalid_count
+                percentage = int((completed / total_urls) * 100)
+                progress_label.config(text=f"{completed} procesados de {total_urls} - {percentage}%")
                 root.update_idletasks()
 
         root.after(0, lambda: mostrar_resultado(ok_count, error_count, invalid_count, carpeta))
 
     def mostrar_resultado(ok_count, error_count, invalid_count, carpeta):
         desbloquear_widgets()
+        # Detener animación, volver a modo determinado vacío y limpiar label
+        progress_bar.stop()
+        progress_bar["mode"] = "determinate"
+        progress_var.set(0)
         stats = t("download_stats").format(ok=ok_count, err=error_count, inv=invalid_count)
         msg = f"{t('download_finished')}\n\n{stats}\n\n{t('download_open_folder_question')}"
         abrir = messagebox.askyesno(t("download_finished"), msg)
@@ -296,9 +354,15 @@ def main():
         carpeta_var.set(t("no_folder"))
         csv_file_var.set(t("no_csv"))
         texto_urls.delete("1.0", "end")
+        # Detener animación, volver a modo determinado vacío y limpiar label
+        progress_bar.stop()
+        progress_bar["mode"] = "determinate"
         progress_var.set(0)
+        progress_label.config(text="")
         fuente_var.set("CSV")
         formato_var.set("MP3")
+        progress_label.config(text="")
+
         actualizar_visibilidad_fuente()
 
     # Botones
